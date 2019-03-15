@@ -25,18 +25,24 @@ blur_gaussian_kernel = np.array([[1,2,1],
 
 lion_array_4d = lion_arr.reshape(-1, 303, 497, 1)
 blur_kernel_4d = blur_box_kernel.reshape(3, 3, 1, 1)
+print(blur_kernel_4d.shape)
 
 graph = tf.Graph()
 with graph.as_default():
+    # A variable maintains state in the graph across calls
     tf_input_image = tf.Variable(np.array(lion_array_4d, dtype = np.float32))
+    print(tf_input_image)
     tf_blur_kernel = tf.Variable(np.array(blur_kernel_4d, dtype = np.float32))
     # strides = [1, 1, 1, 1] results in a convolution on every pixel
     # padding = 'SAME' is standard zero padding that results in an output array with the same shape as the input array.
     tf_convolution_output = tf.nn.conv2d(tf_input_image, tf_blur_kernel, strides = [1, 1, 1, 1], padding = 'SAME')
+    tf_max_pooling = tf.nn.max_pool(tf_input_image, ksize=[1, 2, 2, 1], strides = [1, 4, 4, 1], padding = 'SAME')
+    print(tf_convolution_output.shape)
+    print(tf_max_pooling.shape)
 
 with tf.Session(graph = graph) as sess:
     tf.global_variables_initializer().run()
-    transformed_image = tf_convolution_output.eval()
+    transformed_image = tf_max_pooling.eval()
     transformed_image = transformed_image[0, :, :, 0]
 
 f, ax_array = plt.subplots(2, 1)
